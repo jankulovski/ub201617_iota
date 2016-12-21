@@ -44,13 +44,13 @@ def get_parser():
     return parse_dict
 
 
-def prog_to_executable(p):
+def prog_to_executable(p, obj_str):
     out = []
     for l in p:
         for r in CMDS + TESTS:
-            l = l.replace(' ' + r, " sim." + r)
+            l = l.replace(' ' + r, " "+obj_str+"." + r)
             if l.startswith(r):
-                l = 'sim.' + r + l[len(r):]
+                l = obj_str + '.' + r + l[len(r):]
         out.append(l)
     return out
 
@@ -78,7 +78,7 @@ pd = get_parser()
 
 
 class Agent:
-    def __init__(self, input_hills=None, program=None, seed=0, max_moves=1000):
+    def __init__(self, input_hills=np.zeros((10,10), dtype=int), program=None, seed=0, max_moves=1000):
         # i: rows, j: columns
         self.hills = input_hills
         self.dim_i, self.dim_j = self.hills.shape
@@ -102,6 +102,7 @@ class Agent:
         self.steps = 0
         self.flag_a = True
         self.flag_b = True
+        self.marked_current = False
 
         # available commands
         self.prev_coverage = self.coverage()
@@ -130,6 +131,13 @@ class Agent:
                 'right': 'down'
             }
         }
+
+    def set_rand_seed(self, seed):
+        self.rand = random.Random(seed)
+
+    def set_max_moves(self, max):
+        self.max_moves = max
+        self.move_counter = max
 
     def update_marked_flags(self):
         # TO-DO: update marked flags
@@ -195,6 +203,10 @@ class Agent:
         # TO-DO: unmark position
         pass
 
+    def coverage_improved(self):
+        # TO-DO: coverage improved
+        pass
+
     # TODO: you can add more commands
 
     def coverage(self):
@@ -205,13 +217,19 @@ class Agent:
         return 5 + 2 * (end_square - start_square) ** 2
 
     def update_covered_positions(self):
-        self.covered_positions[self.cur_i][self.cur_j] += 1
+        try:
+            self.covered_positions[self.cur_i][self.cur_j] += 1
+        except Exception:
+            pass
 
     def update_move_counter(self):
-        current_square, previous_square = self.hills[self.cur_i][self.cur_j], \
-                                          self.hills[self.prev_i][self.prev_j]
-        self.move_counter -= self.cost(previous_square, current_square)
-        self.steps += 1
+        try:
+            current_square, previous_square = self.hills[self.cur_i][self.cur_j], \
+                                              self.hills[self.prev_i][self.prev_j]
+            self.move_counter -= self.cost(previous_square, current_square)
+            self.steps += 1
+        except Exception:
+            pass
 
     def check_end(self):
         if self.move_counter <= 0:
@@ -223,9 +241,79 @@ class Agent:
 
     def set_hill(self, hill):
         self.hills = hill
+        self.dim_i, self.dim_j = self.hills.shape
 
     def set_program(self, program):
         self.program = program
+
+    def run(self, graphics=False, verbose=False, max_iter=100, max_len=100,
+                 delay=1.0, seed=0, max_moves=1000, trace=False):
+
+        self.set_rand_seed(seed)
+        self.set_max_moves(max_moves)
+
+        markers = {}
+        prog = vector_to_prog(self.program)
+
+        v = prog_to_vector(prog)
+        if len(v) > max_len:
+            raise Exception("Illegal program length")
+
+        prog = prog_to_executable(prog, 'self')  # add sim.
+
+        try:
+            one_step = compile("\n".join(prog) + "\n", "<string>", "exec")
+        except:
+            raise Exception("Compilation error")
+
+        if graphics:
+            import pylab as plt
+            plt.ion()
+            markers = {'up': '^', 'down': 'v', 'left': '<', 'right': '>'}
+
+        # run simulation
+        for step in range(max_iter):
+            try:
+                exec(one_step)
+                self.iterations += 1
+                if verbose:
+                    sys.stdout.write("Moves remaining: %d Iterations: %d\r" %
+                                     (self.move_counter, step))
+                    sys.stdout.flush()
+            except MaxMovesExceededException:
+                if verbose:
+                    print("Home. Fitness value:", self.fitness())
+                return self.fitness()
+
+            if graphics:
+                plt.clf()
+                plt.imshow(self.hills, cmap="YlOrBr", interpolation='nearest')
+                plt.ylim([-0.5, self.hills.shape[1] - 0.5])
+                plt.xlim([-0.5, self.hills.shape[0] - 0.5])
+                plt.plot(self.marked_positions.T.nonzero()[0],
+                         self.marked_positions.T.nonzero()[1], 'cs',
+                         markersize=8.0,
+                         markerfacecolor="c")
+                plt.plot(self.cur_j, self.cur_i, markers[self.cur_dir],
+                         markersize=8.0,
+                         markerfacecolor="g")
+                plt.title("Flag A:%d Flag B:%d cost A:%d cost B:%d " %
+                          (self.flag_a, self.flag_b,
+                           (self.cost_a if self.cost_a < sys.maxsize else -1),
+                           (self.cost_b if self.cost_b < sys.maxsize else -1)
+                           ))
+                if trace:
+                    plt.imshow((self.covered_positions > 0), cmap="Greys",
+                               alpha=0.2)
+
+                plt.draw()
+                time.sleep(delay)
+
+        if verbose:
+            print("Iteration limit exceed: Failed to find path through hills. "
+                  "Fitness: ", self.fitness())
+
+        return self.fitness()
 
 
 class MaxMovesExceededException(Exception):
@@ -258,7 +346,7 @@ def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
     if len(v) > max_len:
         raise Exception("Illegal program length")
 
-    prog = prog_to_executable(prog)  # add sim.
+    prog = prog_to_executable(prog, 'sim')  # add sim.
 
     try:
         one_step = compile("\n".join(prog) + "\n", "<string>", "exec")

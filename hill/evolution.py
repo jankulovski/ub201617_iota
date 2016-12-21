@@ -9,16 +9,16 @@ path = "examples/sample_program.py"
 # Program is a list of commands. Each command ends with \n.
 # Look at simulator.py for more info.
 program = open(path).read().splitlines()
-print("Program: ")
-for line in program:
-    print("\t%s" % line)
+# print("Program: ")
+# for line in program:
+#     print("\t%s" % line)
 
 # Convert program to vector. Use vectors when performing searching,
 # genetic algorithms, etc.
 # vector is a list of command numbers 0-279
 # The command will fail for illegal programs.
 vector = prog_to_vector(program)
-print("Vector: ", vector)
+# print("Vector: ", vector)
 
 # You can convert vectors back to programs to manually examine solutions.
 # The command will fail for illegal vectors.
@@ -30,10 +30,11 @@ program2 = vector_to_prog(vector)
 # try running the script from the terminal instead of PyCharm.
 af = 0
 for m in hills.hills_train:
-    af += simulate(m, vector, verbose=True, graphics=True, delay=0,
-                   max_moves=500, max_iter=1000, trace=True)
+    # af += simulate(m, vector, verbose=True, graphics=True, delay=0,
+    #                max_moves=500, max_iter=1000, trace=True)
+    pass
 
-print("Average fitness: ", af/len(hills.hills_train))
+# print("Average fitness: ", af/len(hills.hills_train))
 
 
 def generate_random_generation(samples, hill, length=1, size=1):
@@ -70,7 +71,7 @@ def regenerate_generation(population, hill):
         child.set_hill(hill)
 
         # TODO: replace the int list with a list of program samples
-        new_population.append(mutate(child, [1, 2, 3, 4, 5, 6, 7, 8, 9]))
+        new_population.append(mutate(child, [1, 2, 3, 4]))
 
     return new_population
 
@@ -81,7 +82,7 @@ def crossover(a1, a2):
     """
     child = Agent()
     m = int(random.choice(range(len(a1.program))) / 2)
-    child.set_program(a1.program[:m] + a2.program[m:])
+    child.set_program(np.append(a1.program[:m], a2.program[m:]))
 
     return child
 
@@ -108,3 +109,21 @@ def program_combinations(samples, length=1, size=1):
     for _ in range(size):
         programs.append(np.random.choice(samples, length))
     return programs
+
+
+samples = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+population = generate_random_generation(samples, hills.hills_train[0], 10, 100)
+for agent in population:
+    agent.run()
+
+# for agent in sorted(population, key=lambda x: x.fitness(), reverse=True):
+#     print(agent.fitness())
+
+for gen in range(1, 1000):
+    avg_fit = 0
+    population = regenerate_generation(population, hills.hills_train[0])
+    for agent in population:
+        avg_fit += agent.run()
+
+    print("Generation: %d, Average Fitness: %d" %
+          (gen, avg_fit/len(hills.hills_train)))
