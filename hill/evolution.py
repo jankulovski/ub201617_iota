@@ -4,11 +4,11 @@ import numpy as np
 import random
 
 # Load program file
-path = "examples/sample_program.py"
+# path = "examples/sample_program.py"
 
 # Program is a list of commands. Each command ends with \n.
 # Look at simulator.py for more info.
-program = open(path).read().splitlines()
+# program = open(path).read().splitlines()
 # print("Program: ")
 # for line in program:
 #     print("\t%s" % line)
@@ -17,23 +17,21 @@ program = open(path).read().splitlines()
 # genetic algorithms, etc.
 # vector is a list of command numbers 0-279
 # The command will fail for illegal programs.
-vector = prog_to_vector(program)
+# vector = prog_to_vector(program)
 # print("Vector: ", vector)
 
 # You can convert vectors back to programs to manually examine solutions.
 # The command will fail for illegal vectors.
-program2 = vector_to_prog(vector)
+# program2 = vector_to_prog(vector)
 
 # Simulate and visualize some terrains.
 # The function simulate can operate on files, programs or vectors.
 # If you have problems with visualization,
 # try running the script from the terminal instead of PyCharm.
-af = 0
-for m in hills.hills_train:
-    # af += simulate(m, vector, verbose=True, graphics=True, delay=0,
-    #                max_moves=500, max_iter=1000, trace=True)
-    pass
-
+# af = 0
+# for m in hills.hills_train:
+#     af += simulate(m, vector, verbose=True, graphics=True, delay=0,
+#                    max_moves=500, max_iter=1000, trace=True)
 # print("Average fitness: ", af/len(hills.hills_train))
 
 
@@ -71,7 +69,7 @@ def regenerate_generation(population, hill):
         child.set_hill(hill)
 
         # TODO: replace the int list with a list of program samples
-        new_population.append(mutate(child, [1, 2, 3, 4]))
+        new_population.append(mutate(child, [1, 2, 3, 4, 5, 6, 7, 8, 9]))
 
     return new_population
 
@@ -80,7 +78,7 @@ def crossover(a1, a2):
     """
     Crossover
     """
-    child = Agent()
+    child = Agent(hills.hills_train[0])
     m = int(random.choice(range(len(a1.program))) / 2)
     child.set_program(np.append(a1.program[:m], a2.program[m:]))
 
@@ -112,18 +110,24 @@ def program_combinations(samples, length=1, size=1):
 
 
 samples = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-population = generate_random_generation(samples, hills.hills_train[0], 10, 100)
-for agent in population:
-    agent.run()
+hill_index = 0
 
-# for agent in sorted(population, key=lambda x: x.fitness(), reverse=True):
-#     print(agent.fitness())
+for hill in hills.hills_train:
 
-for gen in range(1, 1000):
-    avg_fit = 0
-    population = regenerate_generation(population, hills.hills_train[0])
+    hill_index += 1
+    print("Train hill %d" % hill_index)
+
+    population = generate_random_generation(samples, hill, 9, 100)
     for agent in population:
-        avg_fit += agent.run()
+        agent.run()
 
-    print("Generation: %d, Average Fitness: %d" %
-          (gen, avg_fit/len(hills.hills_train)))
+    for gen in range(1, 100):
+        avg_fit = 0
+        population = regenerate_generation(population, hill)
+        for agent in population:
+            avg_fit += agent.run()
+
+        print("Generation: %d, Average Fitness: %d" %
+              (gen, avg_fit/len(population)))
+
+    # sorted(population, key=lambda x: x.fitness(), reverse=True)

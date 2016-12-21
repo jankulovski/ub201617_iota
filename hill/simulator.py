@@ -78,7 +78,7 @@ pd = get_parser()
 
 
 class Agent:
-    def __init__(self, input_hills=np.zeros((10,10), dtype=int), program=None, seed=0, max_moves=1000):
+    def __init__(self, input_hills, program=None, seed=0, max_moves=1000):
         # i: rows, j: columns
         self.hills = input_hills
         self.dim_i, self.dim_j = self.hills.shape
@@ -135,9 +135,9 @@ class Agent:
     def set_rand_seed(self, seed):
         self.rand = random.Random(seed)
 
-    def set_max_moves(self, max):
-        self.max_moves = max
-        self.move_counter = max
+    def set_max_moves(self, max_moves):
+        self.max_moves = max_moves
+        self.move_counter = max_moves
 
     def update_marked_flags(self):
         # TO-DO: update marked flags
@@ -220,6 +220,8 @@ class Agent:
         try:
             self.covered_positions[self.cur_i][self.cur_j] += 1
         except Exception:
+            # Move outside hill
+            # TODO: end agent movements
             pass
 
     def update_move_counter(self):
@@ -229,6 +231,8 @@ class Agent:
             self.move_counter -= self.cost(previous_square, current_square)
             self.steps += 1
         except Exception:
+            # Move outside hill
+            # TODO: end agent movements
             pass
 
     def check_end(self):
@@ -247,7 +251,7 @@ class Agent:
         self.program = program
 
     def run(self, graphics=False, verbose=False, max_iter=100, max_len=100,
-                 delay=1.0, seed=0, max_moves=1000, trace=False):
+            delay=1.0, seed=0, max_moves=1000, trace=False):
 
         self.set_rand_seed(seed)
         self.set_max_moves(max_moves)
