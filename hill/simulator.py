@@ -77,8 +77,8 @@ def vector_to_prog(v):
 pd = get_parser()
 
 
-class Simulator:
-    def __init__(self, input_hills, seed=0, max_moves=1000):
+class Agent:
+    def __init__(self, input_hills=None, program=None, seed=0, max_moves=1000):
         # i: rows, j: columns
         self.hills = input_hills
         self.dim_i, self.dim_j = self.hills.shape
@@ -112,6 +112,9 @@ class Simulator:
         # Initialize random generator
         # a fixed random generator
         self.rand = random.Random(seed)
+
+        # Program vector
+        self.program = program
 
         self.turn_directions = {
             'left': {
@@ -218,6 +221,12 @@ class Simulator:
     def fitness(self):
         return self.coverage()
 
+    def set_hill(self, hill):
+        self.hills = hill
+
+    def set_program(self, program):
+        self.program = program
+
 
 class MaxMovesExceededException(Exception):
     def __init__(self, value):
@@ -233,7 +242,7 @@ def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
         program can be a path to file, string or vector
         return fitness value
     """
-    sim = Simulator(input_hills, seed, max_moves)
+    sim = Agent(input_hills, seed, max_moves)
     markers = {}
 
     if isinstance(program, str):
