@@ -2,6 +2,7 @@ from simulator import *
 import hills
 import numpy as np
 import random
+import math
 
 # Load program file
 # path = "examples/sample_program.py"
@@ -63,13 +64,14 @@ def regenerate_generation(population, hill):
     new_population = []
     pool = generate_pool(population)
     for _ in range(len(population)):
-        child = crossover(population[random.choice(pool)],
-                          population[random.choice(pool)])
+        child = crossover2(population[random.choice(pool)],
+                           population[random.choice(pool)])
 
         child.set_hill(hill)
 
         # TODO: replace the int list with a list of program samples
-        new_population.append(mutate(child, [1, 2, 3, 4, 5, 6, 7, 8, 9]))
+        new_population.append(mutate(child,
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 0.1))
 
     return new_population
 
@@ -81,8 +83,61 @@ def crossover(a1, a2):
     child = Agent(hills.hills_train[0])
     m = int(random.choice(range(len(a1.program))) / 2)
     child.set_program(np.append(a1.program[:m], a2.program[m:]))
+    where_meet(a1, a2)
+    return child
+
+
+def crossover2(a1, a2):
+    """
+    Crossover 2
+    """
+    child = Agent(hills.hills_train[0])
+
+    meet_points = where_meet(a1, a2)
+    if meet_points[0] != -1:
+        a1sum, a2sum, a1num_steps, a2num_steps = \
+            sum_meet(a1, a2, meet_points[0], meet_points[1])
+
+        if a1sum >= a2num_steps:
+            child.set_program(np.append(a1.program[:a1num_steps],
+                                        a2.program[a1num_steps:]))
+        else:
+            child.set_program(np.append(a2.program[:a2num_steps],
+                                        a1.program[a2num_steps:]))
+    else:
+        a = a1.fitness() / math.gcd(a1.fitness(), a2.fitness())
+        b = a2.fitness() / math.gcd(a1.fitness(), a2.fitness())
+
+        _max = len(a1.program) - 1
+        x = int(1 + a * _max / (a + b))
+        y = int(1 + b * _max / (a + b))
+
+        child.set_program(np.append(a1.program[:x], a2.program[y:]))
 
     return child
+
+
+def where_meet(a1, a2):
+    for i in range(len(a1.covered_positions)-1, 0, -1):
+        for j in range(len(a1.covered_positions[0])-1, 0, -1):
+            if a1.covered_positions[i, j] != 0 and a2.covered_positions[i, j] != 0:
+                return i, j
+    return -1, -1
+
+
+def sum_meet(a1, a2, i, j):
+    a1sum, a2sum = 0, 0
+    a1num_steps, a2num_steps = 0, 0
+    for ni in range(i):
+        for nj in range(j):
+            a1sum += a1.covered_positions[i, j]
+            a2sum += a2.covered_positions[i, j]
+            if a1.covered_positions[i, j] != 0:
+                a1num_steps += 1
+            if a2.covered_positions[i, j] != 0:
+                a2num_steps += 1
+
+    return a1sum, a2sum, a1num_steps, a2num_steps
 
 
 def mutate(agent, samples, rate=0.1):
@@ -109,25 +164,32 @@ def program_combinations(samples, length=1, size=1):
     return programs
 
 
-samples = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+samples = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 hill_index = 0
 
-for hill in hills.hills_train:
+# for hill in hills.hills_train:
 
-    hill_index += 1
-    print("Train hill %d" % hill_index)
+hill_index += 1
+print("Train hill %d" % hill_index)
 
-    population = generate_random_generation(samples, hill, 9, 100)
+hill = hills.hills_train[0]
+
+population = generate_random_generation(samples, hill, 14, 1000)
+for agent in population:
+    agent.run()
+
+for gen in range(1, 100):
+    avg_fit = 0
+    best = 0
+    population = regenerate_generation(population, hill)
     for agent in population:
-        agent.run()
+        fit = agent.run()
+        if fit > best:
+            best = fit
+        avg_fit += fit
+        # print(agent.covered_positions)
 
-    for gen in range(1, 100):
-        avg_fit = 0
-        population = regenerate_generation(population, hill)
-        for agent in population:
-            avg_fit += agent.run()
-
-        print("Generation: %d, Average Fitness: %d" %
-              (gen, avg_fit/len(population)))
+    print("Generation: %d, Average Fitness: %d, Best %d" %
+          (gen, avg_fit/len(population), best))
 
     # sorted(population, key=lambda x: x.fitness(), reverse=True)
