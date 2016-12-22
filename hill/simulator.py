@@ -4,6 +4,7 @@ import random
 import itertools
 import os
 import sys
+import pylab as plt
 
 # legal commands and tests
 # add additional moves and tests
@@ -144,8 +145,30 @@ class Agent:
         pass
 
     def update_can_move_forward_backward(self):
-        # TO-DO: update can move forward backward
-        pass
+
+        self.can_move_forward = True
+        self.can_move_backward = True
+
+        if self.cur_dir == 'left':
+            if self.cur_j == 0:
+                self.can_move_forward = False
+            elif self.cur_j == self.dim_j - 1:
+                self.can_move_backward = False
+        elif self.cur_dir == 'right':
+            if self.cur_j == self.dim_j - 1:
+                self.can_move_forward = False
+            elif self.cur_j == 0:
+                self.can_move_backward = False
+        elif self.cur_dir == 'top':
+            if self.cur_i == 0:
+                self.can_move_forward = False
+            elif self.cur_i == self.dim_i - 1:
+                self.can_move_backward = False
+        elif self.cur_dir == 'down':
+            if self.cur_i == self.dim_i - 1:
+                self.can_move_forward = False
+            elif self.cur_i == 0:
+                self.can_move_backward = False
 
     def move_forward_position(self):
         if self.cur_dir == 'up':
@@ -173,12 +196,14 @@ class Agent:
         self.update_move_counter()
         self.update_covered_positions()
         self.check_end()
+        self.update_can_move_forward_backward()
 
     def move_backward(self):
         self.move_backward_position()
         self.update_move_counter()
         self.update_covered_positions()
         self.check_end()
+        self.update_can_move_forward_backward()
 
     def turn_left(self):
         self.cur_dir = self.turn_directions['left'][self.cur_dir]
@@ -358,7 +383,6 @@ def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
         raise Exception("Compilation error")
 
     if graphics:
-        import pylab as plt
         plt.ion()
         markers = {'up': '^', 'down': 'v', 'left': '<', 'right': '>'}
 

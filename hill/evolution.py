@@ -64,9 +64,11 @@ def regenerate_generation(population, hill):
     new_population = []
     pool = generate_pool(population)
     for _ in range(len(population)):
-        child = crossover2(population[random.choice(pool)],
-                           population[random.choice(pool)])
+        # p1, p2 = wheel_selection(population, pool)
+        p1, p2 = tourn_selection(population, pool, 10)
 
+        # child = crossover(p1, p2)
+        child = crossover2(p1, p2)
         child.set_hill(hill)
 
         # TODO: replace the int list with a list of program samples
@@ -74,6 +76,24 @@ def regenerate_generation(population, hill):
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 0.1))
 
     return new_population
+
+
+def wheel_selection(population, pool):
+    """
+    Roulette Wheel Selection
+    """
+    return population[random.choice(pool)], population[random.choice(pool)]
+
+
+def tourn_selection(population, pool, k=10):
+    """
+    Tournament Selection
+    """
+    candidates = []
+    for _ in range(k):
+        candidates.append(population[random.choice(pool)])
+
+    return sorted(candidates, key=lambda x: x.fitness(), reverse=True)[:2]
 
 
 def crossover(a1, a2):
@@ -187,7 +207,6 @@ for gen in range(1, 100):
         if fit > best:
             best = fit
         avg_fit += fit
-        # print(agent.covered_positions)
 
     print("Generation: %d, Average Fitness: %d, Best %d" %
           (gen, avg_fit/len(population), best))
