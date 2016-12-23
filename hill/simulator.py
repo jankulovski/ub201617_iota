@@ -49,7 +49,7 @@ def prog_to_executable(p, obj_str):
     out = []
     for l in p:
         for r in CMDS + TESTS:
-            l = l.replace(' ' + r, " "+obj_str+"." + r)
+            l = l.replace(' ' + r, " " + obj_str + "." + r)
             if l.startswith(r):
                 l = obj_str + '.' + r + l[len(r):]
         out.append(l)
@@ -104,6 +104,7 @@ class Agent:
         self.flag_a = True
         self.flag_b = True
         self.marked_current = False
+        self.fmove = True
 
         # available commands
         self.prev_coverage = self.coverage()
@@ -159,7 +160,7 @@ class Agent:
                 self.can_move_forward = False
             elif self.cur_j == 0:
                 self.can_move_backward = False
-        elif self.cur_dir == 'top':
+        elif self.cur_dir == 'up':
             if self.cur_i == 0:
                 self.can_move_forward = False
             elif self.cur_i == self.dim_i - 1:
@@ -172,22 +173,30 @@ class Agent:
 
     def move_forward_position(self):
         if self.cur_dir == 'up':
+            self.prev_i = self.cur_i
             self.cur_i += 1
         elif self.cur_dir == 'down':
+            self.prev_i = self.cur_i
             self.cur_i -= 1
         elif self.cur_dir == 'left':
+            self.prev_j = self.cur_j
             self.cur_j -= 1
         elif self.cur_dir == 'right':
+            self.prev_j = self.cur_j
             self.cur_j += 1
 
     def move_backward_position(self):
         if self.cur_dir == 'up':
+            self.prev_i = self.cur_i
             self.cur_i -= 1
         elif self.cur_dir == 'down':
+            self.prev_i = self.cur_i
             self.cur_i += 1
         elif self.cur_dir == 'left':
+            self.prev_j = self.cur_j
             self.cur_j += 1
         elif self.cur_dir == 'right':
+            self.prev_j = self.cur_j
             self.cur_j -= 1
 
     # Commands
@@ -230,7 +239,7 @@ class Agent:
 
     def coverage_improved(self):
         # TO-DO: coverage improved
-        pass
+        return True
 
     # TODO: you can add more commands
 
@@ -242,23 +251,25 @@ class Agent:
         return 5 + 2 * (end_square - start_square) ** 2
 
     def update_covered_positions(self):
-        try:
+        if self.covered_positions.shape > (self.cur_i + 1, self.cur_j + 1):
             self.covered_positions[self.cur_i][self.cur_j] += 1
-        except Exception:
-            # Move outside hill
-            # TODO: end agent movements
-            pass
+        else:
+            raise OutOfBoundException
 
     def update_move_counter(self):
-        try:
-            current_square, previous_square = self.hills[self.cur_i][self.cur_j], \
-                                              self.hills[self.prev_i][self.prev_j]
+        if (self.hills.shape[0] > self.cur_i and
+                    self.hills.shape[1] > self.cur_j and
+                    self.hills.shape > (self.prev_i, self.prev_j) and
+                (self.cur_i >= 0 and self.cur_j >= 0 and self.prev_i >= 0 and
+                         self.prev_j >= 0)) or self.fmove:
+            current_square, previous_square = \
+                self.hills[self.cur_i][self.cur_j], \
+                self.hills[self.prev_i][self.prev_j]
             self.move_counter -= self.cost(previous_square, current_square)
             self.steps += 1
-        except Exception:
-            # Move outside hill
-            # TODO: end agent movements
-            pass
+            self.fmove = False
+        else:
+            raise OutOfBoundException
 
     def check_end(self):
         if self.move_counter <= 0:
@@ -296,7 +307,6 @@ class Agent:
             raise Exception("Compilation error")
 
         if graphics:
-            import pylab as plt
             plt.ion()
             markers = {'up': '^', 'down': 'v', 'left': '<', 'right': '>'}
 
@@ -309,7 +319,7 @@ class Agent:
                     sys.stdout.write("Moves remaining: %d Iterations: %d\r" %
                                      (self.move_counter, step))
                     sys.stdout.flush()
-            except MaxMovesExceededException:
+            except (MaxMovesExceededException, OutOfBoundException):
                 if verbose:
                     print("Home. Fitness value:", self.fitness())
                 return self.fitness()
@@ -343,6 +353,10 @@ class Agent:
                   "Fitness: ", self.fitness())
 
         return self.fitness()
+
+
+class OutOfBoundException(Exception):
+    pass
 
 
 class MaxMovesExceededException(Exception):
@@ -411,7 +425,8 @@ def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
             plt.plot(sim.marked_positions.T.nonzero()[0],
                      sim.marked_positions.T.nonzero()[1], 'cs', markersize=8.0,
                      markerfacecolor="c")
-            plt.plot(sim.cur_j, sim.cur_i, markers[sim.cur_dir], markersize=8.0,
+            plt.plot(sim.cur_j, sim.cur_i, markers[sim.cur_dir],
+                     markersize=8.0,
                      markerfacecolor="g")
             plt.title("Flag A:%d Flag B:%d cost A:%d cost B:%d " %
                       (sim.flag_a, sim.flag_b,
@@ -419,7 +434,8 @@ def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
                        (sim.cost_b if sim.cost_b < sys.maxsize else -1)
                        ))
             if trace:
-                plt.imshow((sim.covered_positions > 0), cmap="Greys", alpha=0.2)
+                plt.imshow((sim.covered_positions > 0), cmap="Greys",
+                           alpha=0.2)
 
             plt.draw()
             time.sleep(delay)

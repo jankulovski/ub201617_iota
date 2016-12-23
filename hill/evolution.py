@@ -35,6 +35,8 @@ import math
 #                    max_moves=500, max_iter=1000, trace=True)
 # print("Average fitness: ", af/len(hills.hills_train))
 
+_P_SAMPLES = list(get_parser().keys())
+
 
 def generate_random_generation(samples, hill, length=1, size=1):
     """
@@ -48,9 +50,12 @@ def generate_random_generation(samples, hill, length=1, size=1):
 
 
 def generate_pool(population):
+
     pool = []
     for a_index in range(len(population)):
         n = int((population[a_index].fitness() / len(population)) * 100)
+        if n == 0:
+            n = 1
         for _ in range(n):
             pool.append(a_index)
 
@@ -71,9 +76,7 @@ def regenerate_generation(population, hill):
         child = crossover2(p1, p2)
         child.set_hill(hill)
 
-        # TODO: replace the int list with a list of program samples
-        new_population.append(mutate(child,
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 0.1))
+        new_population.append(mutate(child, _P_SAMPLES, 0.1))
 
     return new_population
 
@@ -118,12 +121,19 @@ def crossover2(a1, a2):
         a1sum, a2sum, a1num_steps, a2num_steps = \
             sum_meet(a1, a2, meet_points[0], meet_points[1])
 
-        if a1sum >= a2num_steps:
-            child.set_program(np.append(a1.program[:a1num_steps],
-                                        a2.program[a1num_steps:]))
+        a = a1num_steps / math.gcd(a1num_steps, a2num_steps)
+        b = a2num_steps / math.gcd(a1num_steps, a2num_steps)
+
+        _max = len(a1.program) - 1
+        x = int(1 + a * _max / (a + b))
+        y = int(1 + b * _max / (a + b))
+
+        if a1sum > a2sum:
+            child.set_program(np.append(a1.program[:x],
+                                        a2.program[x:]))
         else:
-            child.set_program(np.append(a2.program[:a2num_steps],
-                                        a1.program[a2num_steps:]))
+            child.set_program(np.append(a2.program[:x],
+                                        a1.program[x:]))
     else:
         a = a1.fitness() / math.gcd(a1.fitness(), a2.fitness())
         b = a2.fitness() / math.gcd(a1.fitness(), a2.fitness())
@@ -132,7 +142,10 @@ def crossover2(a1, a2):
         x = int(1 + a * _max / (a + b))
         y = int(1 + b * _max / (a + b))
 
-        child.set_program(np.append(a1.program[:x], a2.program[y:]))
+        if a > b:
+            child.set_program(np.append(a1.program[:x], a2.program[x:]))
+        else:
+            child.set_program(np.append(a2.program[:x], a1.program[x:]))
 
     return child
 
@@ -140,7 +153,8 @@ def crossover2(a1, a2):
 def where_meet(a1, a2):
     for i in range(len(a1.covered_positions)-1, 0, -1):
         for j in range(len(a1.covered_positions[0])-1, 0, -1):
-            if a1.covered_positions[i, j] != 0 and a2.covered_positions[i, j] != 0:
+            if a1.covered_positions[i, j] != 0 and \
+                            a2.covered_positions[i, j] != 0:
                 return i, j
     return -1, -1
 
@@ -150,11 +164,11 @@ def sum_meet(a1, a2, i, j):
     a1num_steps, a2num_steps = 0, 0
     for ni in range(i):
         for nj in range(j):
-            a1sum += a1.covered_positions[i, j]
-            a2sum += a2.covered_positions[i, j]
-            if a1.covered_positions[i, j] != 0:
+            a1sum += a1.covered_positions[ni, nj]
+            a2sum += a2.covered_positions[ni, nj]
+            if a1.covered_positions[ni, nj] != 0:
                 a1num_steps += 1
-            if a2.covered_positions[i, j] != 0:
+            if a2.covered_positions[ni, nj] != 0:
                 a2num_steps += 1
 
     return a1sum, a2sum, a1num_steps, a2num_steps
@@ -184,12 +198,11 @@ def program_combinations(samples, length=1, size=1):
     return programs
 
 
-def store_output(output):
+def store_output(output, filename):
     import json
-    with open('output.txt', 'w') as file:
+    with open(filename, 'w') as file:
         file.write(json.dumps(output, ensure_ascii=False))
 
-samples = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 hill_index = 0
 
 # for hill in hills.hills_train:
@@ -200,7 +213,7 @@ print("Train hill %d" % hill_index)
 hill = hills.hills_train[0]
 output = {}
 
-population = generate_random_generation(samples, hill, 14, 1000)
+population = generate_random_generation(_P_SAMPLES, hill, 50, 1500)
 for agent in population:
     agent.run()
 
@@ -219,10 +232,12 @@ for gen in range(1, 100):
 
     output[gen] = {
         "agents": [
-            {"program": agent.program.tolist(), "fitness": int(agent.fitness())}
+            {"program": agent.program.tolist(),
+             "fitness": int(agent.fitness())}
             for agent in sorted(population, key=lambda x: x.fitness(),
                                 reverse=True)[:10]
         ]
     }
 
-store_output(output)
+store_output(output, "output/output.txt")
+store_output(vector_to_prog(_P_SAMPLES), "output/cmds.txt")
