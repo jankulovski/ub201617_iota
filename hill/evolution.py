@@ -65,7 +65,7 @@ def regenerate_generation(population, hill):
     pool = generate_pool(population)
     for _ in range(len(population)):
         # p1, p2 = wheel_selection(population, pool)
-        p1, p2 = tourn_selection(population, pool, 10)
+        p1, p2 = tourn_selection(population, pool)
 
         # child = crossover(p1, p2)
         child = crossover2(p1, p2)
@@ -184,6 +184,11 @@ def program_combinations(samples, length=1, size=1):
     return programs
 
 
+def store_output(output):
+    import json
+    with open('output.txt', 'w') as file:
+        file.write(json.dumps(output, ensure_ascii=False))
+
 samples = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 hill_index = 0
 
@@ -193,6 +198,7 @@ hill_index += 1
 print("Train hill %d" % hill_index)
 
 hill = hills.hills_train[0]
+output = {}
 
 population = generate_random_generation(samples, hill, 14, 1000)
 for agent in population:
@@ -211,4 +217,12 @@ for gen in range(1, 100):
     print("Generation: %d, Average Fitness: %d, Best %d" %
           (gen, avg_fit/len(population), best))
 
-    # sorted(population, key=lambda x: x.fitness(), reverse=True)
+    output[gen] = {
+        "agents": [
+            {"program": agent.program.tolist(), "fitness": int(agent.fitness())}
+            for agent in sorted(population, key=lambda x: x.fitness(),
+                                reverse=True)[:10]
+        ]
+    }
+
+store_output(output)
