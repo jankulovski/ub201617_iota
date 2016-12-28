@@ -129,11 +129,9 @@ def crossover2(a1, a2):
         y = int(1 + b * _max / (a + b))
 
         if a1sum > a2sum:
-            child.set_program(np.append(a1.program[:x],
-                                        a2.program[x:]))
+            child.set_program(np.append(a1.program[:x], a2.program[x:]))
         else:
-            child.set_program(np.append(a2.program[:x],
-                                        a1.program[x:]))
+            child.set_program(np.append(a2.program[:x], a1.program[x:]))
     else:
         a = a1.fitness() / math.gcd(a1.fitness(), a2.fitness())
         b = a2.fitness() / math.gcd(a1.fitness(), a2.fitness())
@@ -203,41 +201,43 @@ def store_output(output, filename):
     with open(filename, 'w') as file:
         file.write(json.dumps(output, ensure_ascii=False))
 
-hill_index = 0
 
-# for hill in hills.hills_train:
+if __name__ == '__main__':
+    hill_index = 0
 
-hill_index += 1
-print("Train hill %d" % hill_index)
+    # for hill in hills.hills_train:
 
-hill = hills.hills_train[0]
-output = {}
+    hill_index += 1
+    print("Train hill %d" % hill_index)
 
-population = generate_random_generation(_P_SAMPLES, hill, 50, 1500)
-for agent in population:
-    agent.run()
+    hill = hills.hills_train[0]
+    output = {}
 
-for gen in range(1, 100):
-    avg_fit = 0
-    best = 0
-    population = regenerate_generation(population, hill)
+    population = generate_random_generation(_P_SAMPLES, hill, 50, 1500)
     for agent in population:
-        fit = agent.run()
-        if fit > best:
-            best = fit
-        avg_fit += fit
+        agent.run()
 
-    print("Generation: %d, Average Fitness: %d, Best %d" %
-          (gen, avg_fit/len(population), best))
+    for gen in range(1, 100):
+        avg_fit = 0
+        best = 0
+        population = regenerate_generation(population, hill)
+        for agent in population:
+            fit = agent.run()
+            if fit > best:
+                best = fit
+            avg_fit += fit
 
-    output[gen] = {
-        "agents": [
-            {"program": agent.program.tolist(),
-             "fitness": int(agent.fitness())}
-            for agent in sorted(population, key=lambda x: x.fitness(),
-                                reverse=True)[:10]
-        ]
-    }
+        print("Generation: %d, Average Fitness: %d, Best %d" %
+              (gen, avg_fit/len(population), best))
 
-store_output(output, "output/output.txt")
-store_output(vector_to_prog(_P_SAMPLES), "output/cmds.txt")
+        output[gen] = {
+            "agents": [
+                {"program": agent.program.tolist(),
+                 "fitness": int(agent.fitness())}
+                for agent in sorted(population, key=lambda x: x.fitness(),
+                                    reverse=True)[:10]
+            ]
+        }
+
+    store_output(output, "output/output.txt")
+    store_output(vector_to_prog(_P_SAMPLES), "output/cmds.txt")
