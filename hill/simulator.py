@@ -162,14 +162,14 @@ class Agent:
                 self.can_move_backward = False
         elif self.cur_dir == 'up':
             if self.cur_i == 0:
-                self.can_move_forward = False
-            elif self.cur_i == self.dim_i - 1:
                 self.can_move_backward = False
+            elif self.cur_i == self.dim_i - 1:
+                self.can_move_forward = False
         elif self.cur_dir == 'down':
             if self.cur_i == self.dim_i - 1:
-                self.can_move_forward = False
-            elif self.cur_i == 0:
                 self.can_move_backward = False
+            elif self.cur_i == 0:
+                self.can_move_forward = False
 
     def move_forward_position(self):
         if self.cur_dir == 'up':
@@ -216,9 +216,11 @@ class Agent:
 
     def turn_left(self):
         self.cur_dir = self.turn_directions['left'][self.cur_dir]
+        self.update_can_move_forward_backward()
 
     def turn_right(self):
         self.cur_dir = self.turn_directions['right'][self.cur_dir]
+        self.update_can_move_forward_backward()
 
     def set_flag(self):
         self.flag = True
@@ -309,50 +311,57 @@ class Agent:
         if graphics:
             plt.ion()
             markers = {'up': '^', 'down': 'v', 'left': '<', 'right': '>'}
+            self.draw(delay, markers, trace)
 
         # run simulation
         for step in range(max_iter):
             try:
-                exec(one_step)
+                ss = self.fitness()
+                exec(prog[step])
                 self.iterations += 1
                 if verbose:
                     sys.stdout.write("Moves remaining: %d Iterations: %d\r" %
                                      (self.move_counter, step))
                     sys.stdout.flush()
             except (MaxMovesExceededException, OutOfBoundException):
+                if graphics:
+                    self.draw(delay, markers, trace)
                 if verbose:
                     print("Home. Fitness value:", self.fitness())
                 return self.fitness()
 
             if graphics:
-                plt.clf()
-                plt.imshow(self.hills, cmap="YlOrBr", interpolation='nearest')
-                plt.ylim([-0.5, self.hills.shape[1] - 0.5])
-                plt.xlim([-0.5, self.hills.shape[0] - 0.5])
-                plt.plot(self.marked_positions.T.nonzero()[0],
-                         self.marked_positions.T.nonzero()[1], 'cs',
-                         markersize=8.0,
-                         markerfacecolor="c")
-                plt.plot(self.cur_j, self.cur_i, markers[self.cur_dir],
-                         markersize=8.0,
-                         markerfacecolor="g")
-                plt.title("Flag A:%d Flag B:%d cost A:%d cost B:%d " %
-                          (self.flag_a, self.flag_b,
-                           (self.cost_a if self.cost_a < sys.maxsize else -1),
-                           (self.cost_b if self.cost_b < sys.maxsize else -1)
-                           ))
-                if trace:
-                    plt.imshow((self.covered_positions > 0), cmap="Greys",
-                               alpha=0.2)
-
-                plt.draw()
-                time.sleep(delay)
+                self.draw(delay,markers,trace)
 
         if verbose:
             print("Iteration limit exceed: Failed to find path through hills. "
                   "Fitness: ", self.fitness())
 
         return self.fitness()
+
+    def draw(self,delay,markers,trace):
+        plt.clf()
+        plt.imshow(self.hills, cmap="YlOrBr", interpolation='nearest')
+        plt.ylim([-0.5, self.hills.shape[1] - 0.5])
+        plt.xlim([-0.5, self.hills.shape[0] - 0.5])
+        plt.plot(self.marked_positions.T.nonzero()[0],
+                 self.marked_positions.T.nonzero()[1], 'cs',
+                 markersize=8.0,
+                 markerfacecolor="c")
+        plt.plot(self.cur_j, self.cur_i, markers[self.cur_dir],
+                 markersize=8.0,
+                 markerfacecolor="g")
+        plt.title("Flag A:%d Flag B:%d cost A:%d cost B:%d " %
+                  (self.flag_a, self.flag_b,
+                   (self.cost_a if self.cost_a < sys.maxsize else -1),
+                   (self.cost_b if self.cost_b < sys.maxsize else -1)
+                   ))
+        if trace:
+            plt.imshow((self.covered_positions > 0), cmap="Greys",
+                       alpha=0.2)
+
+        plt.draw()
+        plt.pause(delay)
 
 
 class OutOfBoundException(Exception):
@@ -366,82 +375,82 @@ class MaxMovesExceededException(Exception):
     def __str__(self):
         return repr(self.value)
 
-
-def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
-             max_len=100, delay=1.0, seed=0, max_moves=1000, trace=False):
-    """
-        program can be a path to file, string or vector
-        return fitness value
-    """
-    sim = Agent(input_hills, seed, max_moves)
-    markers = {}
-
-    if isinstance(program, str):
-        if os.path.exists(program):
-            prog = open(program).readlines()
-        else:
-            prog = program
-            prog = map(lambda x: x + '\n', filter(None, prog.split('\n')))
-    else:
-        prog = vector_to_prog(program)
-
-    v = prog_to_vector(prog)
-    if len(v) > max_len:
-        raise Exception("Illegal program length")
-
-    prog = prog_to_executable(prog, 'sim')  # add sim.
-
-    try:
-        one_step = compile("\n".join(prog) + "\n", "<string>", "exec")
-    except:
-        raise Exception("Compilation error")
-
-    if graphics:
-        plt.ion()
-        markers = {'up': '^', 'down': 'v', 'left': '<', 'right': '>'}
-
-    # run simulation
-    for step in range(max_iter):
-        try:
-            exec(one_step)
-            sim.iterations += 1
-            if verbose:
-                # sys.stdout.write(
-                #     "Coverage: %d Moves remaining: %d Iterations: %d\r" % (
-                #     sim.coverage(), sim.move_counter, step))
-                sys.stdout.write("Moves remaining: %d Iterations: %d\r" %
-                                 (sim.move_counter, step))
-                sys.stdout.flush()
-        except MaxMovesExceededException:
-            if verbose:
-                print("Home. Fitness value:", sim.fitness())
-            return sim.fitness()
-
-        if graphics:
-            plt.clf()
-            plt.imshow(sim.hills, cmap="YlOrBr", interpolation='nearest')
-            plt.ylim([-0.5, sim.hills.shape[1] - 0.5])
-            plt.xlim([-0.5, sim.hills.shape[0] - 0.5])
-            plt.plot(sim.marked_positions.T.nonzero()[0],
-                     sim.marked_positions.T.nonzero()[1], 'cs', markersize=8.0,
-                     markerfacecolor="c")
-            plt.plot(sim.cur_j, sim.cur_i, markers[sim.cur_dir],
-                     markersize=8.0,
-                     markerfacecolor="g")
-            plt.title("Flag A:%d Flag B:%d cost A:%d cost B:%d " %
-                      (sim.flag_a, sim.flag_b,
-                       (sim.cost_a if sim.cost_a < sys.maxsize else -1),
-                       (sim.cost_b if sim.cost_b < sys.maxsize else -1)
-                       ))
-            if trace:
-                plt.imshow((sim.covered_positions > 0), cmap="Greys",
-                           alpha=0.2)
-
-            plt.draw()
-            time.sleep(delay)
-
-    if verbose:
-        print("Iteration limit exceed: Failed to find path through hills. "
-              "Fitness: ", sim.fitness())
-
-    return sim.fitness()
+#
+# def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
+#              max_len=100, delay=1.0, seed=0, max_moves=1000, trace=False):
+#     """
+#         program can be a path to file, string or vector
+#         return fitness value
+#     """
+#     sim = Agent(input_hills, seed, max_moves)
+#     markers = {}
+#
+#     if isinstance(program, str):
+#         if os.path.exists(program):
+#             prog = open(program).readlines()
+#         else:
+#             prog = program
+#             prog = map(lambda x: x + '\n', filter(None, prog.split('\n')))
+#     else:
+#         prog = vector_to_prog(program)
+#
+#     v = prog_to_vector(prog)
+#     if len(v) > max_len:
+#         raise Exception("Illegal program length")
+#
+#     prog = prog_to_executable(prog, 'sim')  # add sim.
+#
+#     try:
+#         one_step = compile("\n".join(prog) + "\n", "<string>", "exec")
+#     except:
+#         raise Exception("Compilation error")
+#
+#     if graphics:
+#         plt.ion()
+#         markers = {'up': '^', 'down': 'v', 'left': '<', 'right': '>'}
+#
+#     # run simulation
+#     for step in range(max_iter):
+#         try:
+#             exec(one_step)
+#             sim.iterations += 1
+#             if verbose:
+#                 # sys.stdout.write(
+#                 #     "Coverage: %d Moves remaining: %d Iterations: %d\r" % (
+#                 #     sim.coverage(), sim.move_counter, step))
+#                 sys.stdout.write("Moves remaining: %d Iterations: %d\r" %
+#                                  (sim.move_counter, step))
+#                 sys.stdout.flush()
+#         except MaxMovesExceededException:
+#             if verbose:
+#                 print("Home. Fitness value:", sim.fitness())
+#             return sim.fitness()
+#
+#         if graphics:
+#             plt.clf()
+#             plt.imshow(sim.hills, cmap="YlOrBr", interpolation='nearest')
+#             plt.ylim([-0.5, sim.hills.shape[1] - 0.5])
+#             plt.xlim([-0.5, sim.hills.shape[0] - 0.5])
+#             plt.plot(sim.marked_positions.T.nonzero()[0],
+#                      sim.marked_positions.T.nonzero()[1], 'cs', markersize=8.0,
+#                      markerfacecolor="c")
+#             plt.plot(sim.cur_j, sim.cur_i, markers[sim.cur_dir],
+#                      markersize=8.0,
+#                      markerfacecolor="g")
+#             plt.title("Flag A:%d Flag B:%d cost A:%d cost B:%d " %
+#                       (sim.flag_a, sim.flag_b,
+#                        (sim.cost_a if sim.cost_a < sys.maxsize else -1),
+#                        (sim.cost_b if sim.cost_b < sys.maxsize else -1)
+#                        ))
+#             if trace:
+#                 plt.imshow((sim.covered_positions > 0), cmap="Greys",
+#                            alpha=0.2)
+#
+#             plt.draw()
+#             time.sleep(delay)
+#
+#     if verbose:
+#         print("Iteration limit exceed: Failed to find path through hills. "
+#               "Fitness: ", sim.fitness())
+#
+#     return sim.fitness()

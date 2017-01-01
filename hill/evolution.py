@@ -3,6 +3,8 @@ import hills
 import numpy as np
 import random
 import math
+from initialization import *
+
 
 # Load program file
 # path = "examples/sample_program.py"
@@ -35,8 +37,19 @@ import math
 #                    max_moves=500, max_iter=1000, trace=True)
 # print("Average fitness: ", af/len(hills.hills_train))
 
-_P_SAMPLES = list(get_parser().keys())
+#_P_SAMPLES = list(get_parser().keys())
+path = "examples/sample_program.py"
 
+program = open(path).readlines()
+print("Program: ")
+for line in program:
+    print("\t%s" % line)
+
+vector = prog_to_vector(program)
+print
+print("Vector: ", vector)
+
+_P_SAMPLES = vector
 
 def generate_random_generation(samples, hill, length=1, size=1):
     """
@@ -213,16 +226,16 @@ if __name__ == '__main__':
     hill = hills.hills_train[0]
     output = {}
 
-    population = generate_random_generation(_P_SAMPLES, hill, 50, 1500)
+    population = generate_random_generation(_P_SAMPLES, hill, max_iter, population_size)
     for agent in population:
-        agent.run()
+        agent.run(max_iter=max_iter,max_moves=money)
 
-    for gen in range(1, 100):
+    for gen in range(1, num_of_generations):
         avg_fit = 0
         best = 0
         population = regenerate_generation(population, hill)
         for agent in population:
-            fit = agent.run()
+            fit = agent.run(max_iter=max_iter,max_moves=money)
             if fit > best:
                 best = fit
             avg_fit += fit
@@ -235,9 +248,9 @@ if __name__ == '__main__':
                 {"program": agent.program.tolist(),
                  "fitness": int(agent.fitness())}
                 for agent in sorted(population, key=lambda x: x.fitness(),
-                                    reverse=True)[:10]
+                                    reverse=True)[:]
             ]
         }
 
     store_output(output, "output/output.txt")
-    store_output(vector_to_prog(_P_SAMPLES), "output/cmds.txt")
+    store_output(vector_to_prog(list(get_parser().keys())), "output/cmds.txt")
