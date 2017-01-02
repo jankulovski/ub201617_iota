@@ -5,8 +5,11 @@ import itertools
 import os
 import sys
 import pylab as plt
+import matplotlib.pyplot as mplt
+import plotly.plotly as py
+import plotly.tools as tls
 
-# legal commands and tests
+# legal commands and testsS
 # add additional moves and tests
 CMDS = [
     "nop()",
@@ -363,6 +366,40 @@ class Agent:
         plt.draw()
         plt.pause(delay)
 
+def drawChart(gen):
+    av_test = list()
+    best_test = list()
+    my_xticks_list = []
+    for key, value in gen.items():
+       # print(key, value)
+        av_test.append(value["avr_fitness"])
+        best_test.append(value["best_fitness"])
+        my_xticks_list.append("G_" + repr(key))
+
+    mpl_fig = mplt.figure()
+    ax = mpl_fig.add_subplot(111)
+
+    N = len(gen)
+
+    average = tuple(av_test)
+    best = tuple(best_test)
+    #averageStd = (2, 3, 4, 1, 2)
+    #bestStd = (3, 5, 2, 3, 3)
+    ind = np.arange(N)  # the x locations for the groups
+    width = 0.35  # the width of the bars: can also be len(x) sequence
+    my_xticks = np.asarray(my_xticks_list)
+    p1 = ax.bar(ind, average, width, color=(0.2588,0.4433,1.0))
+    p2 = ax.bar(ind, best, width, color=(0.0, 0.5019607843137255, 0.0),
+                bottom=average)
+    ax.set_ylabel('Fitness')
+    ax.set_xlabel('Generation')
+    ax.set_title('Scores for average and best fitness per generation')
+
+    #ax.set_xticks(ind, my_xticks.all(ax))
+
+    plotly_fig = tls.mpl_to_plotly(mpl_fig)
+
+    #plot_url = py.plot(plotly_fig, filename='stacked-bar-chart')
 
 class OutOfBoundException(Exception):
     pass

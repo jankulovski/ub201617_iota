@@ -225,6 +225,7 @@ if __name__ == '__main__':
 
     hill = hills.hills_train[0]
     output = {}
+    agents_fitness={}
 
     population = generate_random_generation(_P_SAMPLES, hill, max_iter, population_size)
     for agent in population:
@@ -243,6 +244,11 @@ if __name__ == '__main__':
         print("Generation: %d, Average Fitness: %d, Best %d" %
               (gen, avg_fit/len(population), best))
 
+        agents_fitness[gen] = {
+        "avr_fitness":avg_fit/len(population),
+        "best_fitness":best
+        }
+
         output[gen] = {
             "agents": [
                 {"program": agent.program.tolist(),
@@ -254,3 +260,5 @@ if __name__ == '__main__':
 
     store_output(output, "output/output.txt")
     store_output(vector_to_prog(list(get_parser().keys())), "output/cmds.txt")
+    #draw a chart with average fitness per generation.
+    drawChart(agents_fitness)
