@@ -39,7 +39,7 @@ elif plot_type ==2:
         plt.imshow(hill, cmap="YlOrBr", interpolation='nearest')
         plt.ylim([-0.5, hill.shape[1] - 0.5])
         plt.xlim([-0.5, hill.shape[0] - 0.5])
-        plt.imshow((covered_positions > 0), cmap="Greys",
+        plt.imshow((covered_positions > 0), cmap="BuPu",
                     alpha=0.3)
         plt.draw()
         plt.pause(0.5)

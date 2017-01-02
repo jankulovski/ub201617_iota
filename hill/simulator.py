@@ -357,8 +357,8 @@ class Agent:
                    (self.cost_b if self.cost_b < sys.maxsize else -1)
                    ))
         if trace:
-            plt.imshow((self.covered_positions > 0), cmap="Greys",
-                       alpha=0.2)
+            plt.imshow((self.covered_positions > 0), cmap="BuPu",
+                       alpha=0.3)
 
         plt.draw()
         plt.pause(delay)
