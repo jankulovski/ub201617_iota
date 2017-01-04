@@ -62,17 +62,17 @@ def generate_random_generation(samples, hill, length=1, size=1):
     return generation
 
 
-def generate_pool(population):
-
-    pool = []
-    for a_index in range(len(population)):
-        n = int((population[a_index].fitness() / len(population)) * 100)
-        if n == 0:
-            n = 1
-        for _ in range(n):
-            pool.append(a_index)
-
-    return pool
+# def generate_pool(population):
+#
+#     pool = []
+#     for a_index in range(len(population)):
+#         n = int((population[a_index].fitness() / len(population)) * 100)
+#         if n == 0:
+#             n = 1
+#         for _ in range(n):
+#             pool.append(a_index)
+#
+#     return pool
 
 
 def regenerate_generation(population, hill):
@@ -80,17 +80,17 @@ def regenerate_generation(population, hill):
     Generate generation
     """
     new_population = []
-    pool = generate_pool(population)
+    # pool = generate_pool(population)
     for _ in range(len(population)):
         # p1, p2 = wheel_selection(population, pool)
         p1 = tourn_selection(population,tournament_size)
         p2 = tourn_selection(population,tournament_size)
 
         # child = crossover(p1, p2)
-        child = crossover2(p1, p2)
-        child.set_hill(hill)
+        # child.set_hill(hill)
+        child = crossover3(p1, p2, hill)
 
-        new_population.append(mutate(child, _P_SAMPLES, 0.1))
+        new_population.append(mutate(child, _P_SAMPLES, mutation_rate))
 
     return new_population
 
@@ -161,6 +161,10 @@ def crossover2(a1, a2):
 
     return child
 
+def crossover3(a1,a2,hill):
+    x = np.random.randint(0,max_iter)
+    prog = np.append(a1.program[:x], a2.program[x:])
+    return Agent(hill,prog)
 
 def where_meet(a1, a2):
     for i in range(len(a1.covered_positions)-1, 0, -1):
