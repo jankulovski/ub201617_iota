@@ -83,7 +83,8 @@ def regenerate_generation(population, hill):
     pool = generate_pool(population)
     for _ in range(len(population)):
         # p1, p2 = wheel_selection(population, pool)
-        p1, p2 = tourn_selection(population, pool)
+        p1 = tourn_selection(population,tournament_size)
+        p2 = tourn_selection(population,tournament_size)
 
         # child = crossover(p1, p2)
         child = crossover2(p1, p2)
@@ -101,15 +102,15 @@ def wheel_selection(population, pool):
     return population[random.choice(pool)], population[random.choice(pool)]
 
 
-def tourn_selection(population, pool, k=10):
+def tourn_selection(population, k):
     """
     Tournament Selection
     """
     candidates = []
     for _ in range(k):
-        candidates.append(population[random.choice(pool)])
+        candidates.append(population[random.choice(range(population_size))])
 
-    return sorted(candidates, key=lambda x: x.fitness(), reverse=True)[:2]
+    return sorted(candidates, key=lambda x: x.fitness(), reverse=True)[0]
 
 
 def crossover(a1, a2):
