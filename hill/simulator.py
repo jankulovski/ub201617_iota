@@ -412,6 +412,22 @@ class MaxMovesExceededException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class ChartProperties:
+    def __init__(self):
+        self.crossOverClassName = ""
+        self.selectionClassName = ""
+
+    def set_crossover(self, name):
+        self.crossOverClassName = name
+
+    def set_selection(self, name):
+        self.selectionClassName = name
+
+    def get_crossover(self):
+        return self.crossOverClassName
+
+    def get_selection(self):
+        return self.selectionClassName
 #
 # def simulate(input_hills, program, graphics=False, verbose=False, max_iter=100,
 #              max_len=100, delay=1.0, seed=0, max_moves=1000, trace=False):

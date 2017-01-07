@@ -37,7 +37,9 @@ from initialization import *
 #                    max_moves=500, max_iter=1000, trace=True)
 # print("Average fitness: ", af/len(hills.hills_train))
 
-#_P_SAMPLES = list(get_parser().keys())
+chartProp = ChartProperties()
+
+_P_SAMPLES = list(get_parser().keys())
 path = "examples/sample_program.py"
 
 program = open(path).readlines()
@@ -49,7 +51,7 @@ vector = prog_to_vector(program)
 print
 print("Vector: ", vector)
 
-_P_SAMPLES = vector
+# _P_SAMPLES = vector
 
 def generate_random_generation(samples, hill, length=1, size=1):
     """
@@ -99,6 +101,7 @@ def wheel_selection(population, pool):
     """
     Roulette Wheel Selection
     """
+    chartProp.set_selection("weel")
     return population[random.choice(pool)], population[random.choice(pool)]
 
 
@@ -106,6 +109,7 @@ def tourn_selection(population, k):
     """
     Tournament Selection
     """
+    chartProp.set_selection("turnament")
     candidates = []
     for _ in range(k):
         candidates.append(population[random.choice(range(population_size))])
@@ -117,6 +121,7 @@ def crossover(a1, a2):
     """
     Crossover
     """
+    chartProp.set_crossover("crossover")
     child = Agent(hills.hills_train[0])
     m = int(random.choice(range(len(a1.program))) / 2)
     child.set_program(np.append(a1.program[:m], a2.program[m:]))
@@ -128,6 +133,7 @@ def crossover2(a1, a2):
     """
     Crossover 2
     """
+    chartProp.set_crossover("crossover2")
     child = Agent(hills.hills_train[0])
 
     meet_points = where_meet(a1, a2)
@@ -162,6 +168,7 @@ def crossover2(a1, a2):
     return child
 
 def crossover3(a1,a2,hill):
+    chartProp.set_crossover("crossover3")
     x = np.random.randint(0,max_iter)
     prog = np.append(a1.program[:x], a2.program[x:])
     return Agent(hill,prog)
@@ -262,7 +269,8 @@ if __name__ == '__main__':
                                     reverse=True)[:]
             ]
         }
-
+    output["crossoverClassName"] = chartProp.get_crossover()
+    output["selectionClassName"] = chartProp.get_selection()
     store_output(output, "output/output.txt")
     store_output(vector_to_prog(list(get_parser().keys())), "output/cmds.txt")
     #draw a chart with average fitness per generation.
