@@ -257,8 +257,8 @@ if __name__ == '__main__':
               (gen, avg_fit/len(population), best))
 
         agents_fitness[gen] = {
-        "avr_fitness":avg_fit/len(population),
-        "best_fitness":best
+        "avr_fitness": avg_fit/len(population),
+        "best_fitness": best
         }
 
         output[gen] = {

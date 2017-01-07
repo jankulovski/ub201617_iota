@@ -5,9 +5,11 @@ import itertools
 import os
 import sys
 import pylab as plt
-import matplotlib.pyplot as mplt
+import matplotlib.pyplot as mat_plt
 import plotly.plotly as py
 import plotly.tools as tls
+
+tls.set_credentials_file(username='OliveraPerunkovska', api_key='uJZCJEvvxZp5anzyIEed')
 
 # legal commands and testsS
 # add additional moves and tests
@@ -376,7 +378,7 @@ def drawChart(gen):
         best_test.append(value["best_fitness"])
         my_xticks_list.append("G_" + repr(key))
 
-    mpl_fig = mplt.figure()
+    mpl_fig = mat_plt.figure()
     ax = mpl_fig.add_subplot(111)
 
     N = len(gen)
@@ -396,10 +398,13 @@ def drawChart(gen):
     ax.set_title('Scores for average and best fitness per generation')
 
     #ax.set_xticks(ind, my_xticks.all(ax))
+    plotly_fig = tls.mpl_to_plotly( mpl_fig )
+    # For Legend - plot
+    plotly_fig["layout"]["showlegend"] = True
+    plotly_fig["data"][0]["name"] = "Avg_fitness"
+    plotly_fig["data"][1]["name"] = "Best_fitness"
 
-    plotly_fig = tls.mpl_to_plotly(mpl_fig)
-
-    #plot_url = py.plot(plotly_fig, filename='stacked-bar-chart')
+    plot_url = py.plot(plotly_fig, filename='stacked-bar-chart')
 
 class OutOfBoundException(Exception):
     pass
