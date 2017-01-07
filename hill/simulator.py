@@ -19,8 +19,8 @@ CMDS = [
     "move_backward()",
     "turn_left()",
     "turn_right()",
-    "set_flag()",
-    "clear_flag()",
+ #   "set_flag()",
+ #   "clear_flag()",
     "mark_position()",
     "unmark_position()"]
 
@@ -28,8 +28,10 @@ TESTS = [
     "coverage_improved()",
     "can_move_forward",
     "can_move_backward",
+    "marked_ahead",
+    "marked_behind",
     "marked_current",
-    "flag"
+#    "flag"
 ]
 
 
@@ -95,10 +97,12 @@ class Agent:
         # initial positions
         self.move_counter = max_moves
         self.cur_dir = 'down'
-        self.prev_i = 0
-        self.prev_j = 0
-        self.cur_i = 0
-        self.cur_j = 0
+        self.cur_i = self.dim_i-1
+        self.cur_j = self.dim_j-1
+        self.prev_i = self.cur_i
+        self.prev_j = self.cur_j
+        self.start_i = self.cur_i
+        self.start_j = self.cur_j
         self.cost_a = 0
         self.cost_b = 0
         self.iterations = 0
@@ -109,6 +113,8 @@ class Agent:
         self.flag_a = True
         self.flag_b = True
         self.marked_current = False
+        self.marked_ahead = False
+        self.marked_behind = False
         self.fmove = True
 
         # available commands
@@ -148,7 +154,37 @@ class Agent:
 
     def update_marked_flags(self):
         # TO-DO: update marked flags
-        pass
+        self.marked_ahead = False
+        self.marked_behind = False
+
+        if self.cur_dir == 'up':
+            if self.cur_i != self.dim_i - 1:
+                if self.marked_positions[self.cur_i+1][self.cur_j] == 1:
+                    self.marked_ahead = True
+            if self.cur_i != 0:
+                if self.marked_positions[self.cur_i-1][self.cur_j] == 1:
+                    self.marked_behind = True
+        elif self.cur_dir == 'down':
+            if self.cur_i != self.dim_i - 1:
+                if self.marked_positions[self.cur_i+1][self.cur_j] == 1:
+                    self.marked_behind = True
+            if self.cur_i != 0:
+                if self.marked_positions[self.cur_i-1][self.cur_j] == 1:
+                    self.marked_ahead = True
+        elif self.cur_dir == 'left':
+            if self.cur_j != self.dim_j - 1:
+                if self.marked_positions[self.cur_i][self.cur_j+1] == 1:
+                    self.marked_behind = True
+            if self.cur_j != 0:
+                if self.marked_positions[self.cur_i][self.cur_j-1] == 1:
+                    self.marked_ahead = True
+        elif self.cur_dir == 'right':
+            if self.cur_j != self.dim_j - 1:
+                if self.marked_positions[self.cur_i][self.cur_j+1] == 1:
+                    self.marked_ahead = True
+            if self.cur_j != 0:
+                if self.marked_positions[self.cur_i][self.cur_j-1] == 1:
+                    self.marked_behind = True
 
     def update_can_move_forward_backward(self):
 
@@ -206,16 +242,20 @@ class Agent:
 
     # Commands
     def move_forward(self):
+        self.prev_coverage = self.coverage()
         self.move_forward_position()
-        self.update_move_counter()
         self.update_covered_positions()
+        self.update_move_counter()
+        self.update_marked_flags()
         self.check_end()
         self.update_can_move_forward_backward()
 
     def move_backward(self):
+        self.prev_coverage = self.coverage()
         self.move_backward_position()
-        self.update_move_counter()
         self.update_covered_positions()
+        self.update_move_counter()
+        self.update_marked_flags()
         self.check_end()
         self.update_can_move_forward_backward()
 
@@ -238,15 +278,18 @@ class Agent:
 
     def mark_position(self):
         # TO-DO: mark position
+        self.marked_positions[self.cur_i][self.cur_j] = 1
         pass
 
     def unmark_position(self):
         # TO-DO: unmark position
+        self.marked_positions[self.cur_i][self.cur_j] = 0
         pass
 
     def coverage_improved(self):
         # TO-DO: coverage improved
-        return True
+        if self.coverage() > self.prev_coverage: return True
+        return False
 
     # TODO: you can add more commands
 
@@ -258,7 +301,7 @@ class Agent:
         return 5 + 2 * (end_square - start_square) ** 2
 
     def update_covered_positions(self):
-        if self.covered_positions.shape > (self.cur_i + 1, self.cur_j + 1):
+        if self.covered_positions.shape[0] >= self.cur_i + 1 and self.covered_positions.shape[1] >= self.cur_j + 1:
             self.covered_positions[self.cur_i][self.cur_j] += 1
         else:
             raise OutOfBoundException
@@ -282,9 +325,13 @@ class Agent:
         if self.move_counter <= 0:
             raise MaxMovesExceededException(self.fitness())
 
-    # Fitness is the coverage
+    # # Fitness is the coverage
+    # def fitness(self):
+    #     return self.coverage()
+    # Fitness is the distance from starting point
     def fitness(self):
-        return self.coverage()
+        f = abs(self.cur_i-self.start_i)+abs(self.cur_j-self.start_j)
+        return f
 
     def set_hill(self, hill):
         self.hills = hill
@@ -293,7 +340,7 @@ class Agent:
     def set_program(self, program):
         self.program = program
 
-    def run(self, graphics=False, verbose=False, max_iter=100, max_len=100,
+    def run(self, graphics=False, verbose=False, max_iter=100, max_len=200,
             delay=1.0, seed=0, max_moves=1000, trace=False):
 
         self.set_rand_seed(seed)
@@ -356,11 +403,8 @@ class Agent:
         plt.plot(self.cur_j, self.cur_i, markers[self.cur_dir],
                  markersize=8.0,
                  markerfacecolor="g")
-        plt.title("Flag A:%d Flag B:%d cost A:%d cost B:%d " %
-                  (self.flag_a, self.flag_b,
-                   (self.cost_a if self.cost_a < sys.maxsize else -1),
-                   (self.cost_b if self.cost_b < sys.maxsize else -1)
-                   ))
+
+        plt.title("Money:%d, Steps:%d, Fitness:%d" % (self.move_counter,self.steps, self.fitness()))
         if trace:
             plt.imshow((self.covered_positions > 0), cmap="BuPu",
                        alpha=0.3)

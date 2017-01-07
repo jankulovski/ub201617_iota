@@ -228,14 +228,7 @@ def store_output(output, filename):
 
 
 if __name__ == '__main__':
-    hill_index = 0
 
-    # for hill in hills.hills_train:
-
-    hill_index += 1
-    print("Train hill %d" % hill_index)
-
-    hill = hills.hills_train[0]
     output = {}
     agents_fitness={}
 
