@@ -107,7 +107,7 @@ public class Chart extends JFrame {
 
     private String GetFile() throws Exception{
         String path = System.getProperty("user.dir");
-        path = path.replace(File.separator + "AgentGUI","");
+        path = path.replace(File.separator + "AgentsAnalyzeGUI","");
         path += File.separator + "output" + File.separator + "output.txt";
         FileReader file = new FileReader(path);
         BufferedReader textReader = new BufferedReader(file);
