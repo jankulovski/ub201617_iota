@@ -96,6 +96,11 @@ Generation: 47, Average Fitness: 15, Best 17<br/>
 Generation: 48, Average Fitness: 15, Best 17<br/>
 Generation: 49, Average Fitness: 15, Best 17<br/>
 
-Plots: <br/>
+Results: <br/>
 [Average fitness per generation using tournament selection, first Singe point crossover function and mutation function](hill/tests/TournamentCrossover1AverageFitnessPerPopulation.JPG) <br/>
 [Best fitness per generation using tournament selection, first Singe point crossover function and mutation function](hill/tests/TournamentCrossover1BestFitnessPerPopulation.JPG) <br/>
+
+[Scores for average fitness per generation, first Singe point crossover function and mutation function](https://plot.ly/~OliveraPerunkovska/4/scores-for-average-fitness-per-generation/) <br/>
+[Scores for average and best fitness per generation, first Singe point crossover function and mutation function](https://plot.ly/~OliveraPerunkovska/0/scores-for-average-and-best-fitness-per-generation/) <br/>
+
+`Second test` - 
