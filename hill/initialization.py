@@ -2,7 +2,7 @@ import hills
 
 max_iter = 20
 money = 250
-population_size = 150
+population_size = 50
 num_of_generations = 50
 
 tournament_size = 15

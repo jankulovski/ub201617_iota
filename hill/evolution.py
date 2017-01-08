@@ -63,17 +63,17 @@ def generate_random_generation(samples, hill, length=1, size=1):
     return generation
 
 
-# def generate_pool(population):
-#
-#     pool = []
-#     for a_index in range(len(population)):
-#         n = int((population[a_index].fitness() / len(population)) * 100)
-#         if n == 0:
-#             n = 1
-#         for _ in range(n):
-#             pool.append(a_index)
-#
-#     return pool
+def generate_pool(population):
+
+     pool = []
+     for a_index in range(len(population)):
+         n = int((population[a_index].fitness() / len(population)) * 100)
+         if n == 0:
+             n = 1
+         for _ in range(n):
+             pool.append(a_index)
+
+     return pool
 
 
 def regenerate_generation(population, hill):
@@ -232,6 +232,7 @@ if __name__ == '__main__':
     output = {}
     agents_fitness={}
 
+
     #generates first population
     population = generate_random_generation(_P_SAMPLES, hill, max_iter, population_size)
     # for each agent run his program
@@ -248,7 +249,7 @@ if __name__ == '__main__':
             if fit > best:
                 best = fit
             avg_fit += fit
-
+        all_averageFitness.append(avg_fit/len(population))
         print("Generation: %d, Average Fitness: %d, Best %d" %
               (gen, avg_fit/len(population), best))
 
@@ -265,6 +266,7 @@ if __name__ == '__main__':
                                     reverse=True)[:]
             ]
         }
+
     output["crossoverClassName"] = chartProp.get_crossover()
     output["selectionClassName"] = chartProp.get_selection()
     store_output(output, "output/output.txt")
