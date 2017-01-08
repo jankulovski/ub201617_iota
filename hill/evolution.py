@@ -48,7 +48,6 @@ for line in program:
     print("\t%s" % line)
 
 vector = prog_to_vector(program)
-print
 print("Vector: ", vector)
 
 # _P_SAMPLES = vector
@@ -266,5 +265,10 @@ if __name__ == '__main__':
     output["selectionClassName"] = chartProp.get_selection()
     store_output(output, "output/output.txt")
     store_output(vector_to_prog(list(get_parser().keys())), "output/cmds.txt")
+
     #draw a chart with average fitness per generation.
+    drawChartAvgFitness(agents_fitness)
+    # draw a chart with best fitness per generation.
+    drawChartBestFitness(agents_fitness)
+    #draw a chart with combine average fit and best fit per generation
     drawChart(agents_fitness)

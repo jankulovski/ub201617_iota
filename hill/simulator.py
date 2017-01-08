@@ -9,6 +9,7 @@ import matplotlib.pyplot as mat_plt
 import plotly.plotly as py
 import plotly.tools as tls
 
+#set credentials for the plot to be opened in a browser
 tls.set_credentials_file(username='OliveraPerunkovska', api_key='uJZCJEvvxZp5anzyIEed')
 
 # legal commands and testsS
@@ -412,14 +413,59 @@ class Agent:
         plt.draw()
         plt.pause(delay)
 
+#draws the average fitness per generation
+def drawChartAvgFitness(gen):
+    averageFit_agent = list()
+    for key, value in gen.items():
+        averageFit_agent.append(value["avr_fitness"])
+
+    fig = mat_plt.gcf()
+    x = np.arange(len(gen)) #the x axes values
+    averageFit = tuple(averageFit_agent) #average fitness of the generation
+
+    ax = mat_plt.subplot(111)
+    ax.bar(x, averageFit, width=0.2, color='b')
+
+    #set the values for the axes
+    ax.set_ylabel('Fitness')
+    ax.set_xlabel('Generation')
+    ax.set_title('Scores for average fitness per generation')
+
+    mat_plt.show()
+
+    plot_url = py.plot_mpl(fig, filename='mpl-basic-bar')
+
+#draws the best fitness per generation
+def drawChartBestFitness(gen):
+    bestFit_agent = list()
+    for key, value in gen.items():
+        bestFit_agent.append(value["best_fitness"])
+
+    fig = mat_plt.gcf()
+    x = np.arange(len(gen)) #the x axes values
+    bestFit = tuple(bestFit_agent) #best fitness of the generation
+
+    ax = mat_plt.subplot(111)
+    ax.bar(x, bestFit, width=0.2, color='g')
+
+    #set the values for the axes
+    ax.set_ylabel('Fitness')
+    ax.set_xlabel('Generation')
+    ax.set_title('Scores for best fitness per generation')
+
+    mat_plt.show()
+
+    plot_url = py.plot_mpl(fig, filename='mpl-basic-bar')
+
+#draws combine plot from the average fitness and best fitness in one chart per generation
 def drawChart(gen):
-    av_test = list()
-    best_test = list()
+    averageFit_agent = list()
+    bestFit_agent = list()
     my_xticks_list = []
     for key, value in gen.items():
        # print(key, value)
-        av_test.append(value["avr_fitness"])
-        best_test.append(value["best_fitness"])
+        averageFit_agent.append(value["avr_fitness"])
+        bestFit_agent.append(value["best_fitness"])
         my_xticks_list.append("G_" + repr(key))
 
     mpl_fig = mat_plt.figure()
@@ -427,16 +473,17 @@ def drawChart(gen):
 
     N = len(gen)
 
-    average = tuple(av_test)
-    best = tuple(best_test)
-    #averageStd = (2, 3, 4, 1, 2)
-    #bestStd = (3, 5, 2, 3, 3)
+    average = tuple(averageFit_agent)
+    best = tuple(bestFit_agent)
+
     ind = np.arange(N)  # the x locations for the groups
     width = 0.35  # the width of the bars: can also be len(x) sequence
     my_xticks = np.asarray(my_xticks_list)
     p1 = ax.bar(ind, average, width, color=(0.2588,0.4433,1.0))
     p2 = ax.bar(ind, best, width, color=(0.0, 0.5019607843137255, 0.0),
                 bottom=average)
+
+    #set the label text for the axes
     ax.set_ylabel('Fitness')
     ax.set_xlabel('Generation')
     ax.set_title('Scores for average and best fitness per generation')
@@ -449,6 +496,36 @@ def drawChart(gen):
     plotly_fig["data"][1]["name"] = "Best_fitness"
 
     plot_url = py.plot(plotly_fig, filename='stacked-bar-chart')
+
+# def drawChart1(gen):
+#     averageFit_agent = list()
+#     bestFit_agent = list()
+#     my_xticks = []
+#     for key, value in gen.items():
+#         averageFit_agent.append(value["avr_fitness"])
+#         bestFit_agent.append(value["best_fitness"])
+#         my_xticks.append("G_" + repr(key))
+#
+#     multiple_bars = mat_plt.figure()
+#
+#     x = np.arange(len(gen))
+#
+#     y = tuple(averageFit_agent)
+#     z = tuple(bestFit_agent)
+#
+#     ax = mat_plt.subplot(111)
+#     ax.bar(x - 0.2, y, width=0.2, color='b', align='center')
+#     ax.bar(x, z, width=0.2, color='g', align='center')
+#
+#     #set the values for the axes
+#     ax.set_ylabel('Fitness')
+#     ax.set_xlabel('Generation')
+#     ax.set_title('Scores for average and best fitness per generation')
+#
+#     mat_plt.show()
+#
+#     plot_url = py.plot_mpl(multiple_bars, filename='mpl-multiple-bars')
+
 
 class OutOfBoundException(Exception):
     pass
