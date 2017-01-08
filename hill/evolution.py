@@ -83,13 +83,13 @@ def regenerate_generation(population, hill):
     new_population = []
     # pool = generate_pool(population)
     for _ in range(len(population)):
-        # p1, p2 = wheel_selection(population, pool)
+        #p1, p2 = wheel_selection(population, len(population))
         p1 = tourn_selection(population,tournament_size)
         p2 = tourn_selection(population,tournament_size)
 
         # child = crossover(p1, p2)
         # child.set_hill(hill)
-        child = crossover3(p1, p2, hill)
+        child = crossover(p1, p2)
 
         new_population.append(mutate(child, _P_SAMPLES, mutation_rate))
 
@@ -114,6 +114,7 @@ def tourn_selection(population, k):
         candidates.append(population[random.choice(range(population_size))])
 
     return sorted(candidates, key=lambda x: x.fitness(), reverse=True)[0]
+
 
 
 def crossover(a1, a2):
@@ -231,10 +232,13 @@ if __name__ == '__main__':
     output = {}
     agents_fitness={}
 
+    #generates first population
     population = generate_random_generation(_P_SAMPLES, hill, max_iter, population_size)
+    # for each agent run his program
     for agent in population:
         agent.run(max_iter=max_iter,max_moves=money)
 
+    #
     for gen in range(1, num_of_generations):
         avg_fit = 0
         best = 0

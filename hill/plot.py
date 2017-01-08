@@ -11,7 +11,7 @@ file = open("output/cmds.txt")
 line = file.readline()
 cmds = json.loads(line)
 
-plot_type = 1
+plot_type = 2
 
 if plot_type==1:
     # plot best agent in last x generations
