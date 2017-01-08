@@ -33,7 +33,7 @@ Predefined thresholds that can be changed @[Initialization.py](hill/initializati
 - Mutation rate<br/>
 - Hill(terrain)<br/>
 
-Agents are defined as objects with following attributes @hill/simulator.py - Agent class@:
+Agents are defined as objects with following attributes @[Agent class](hill/simulator.py)@:
 - Commands 
 	CMDS = [
 		"nop()",
