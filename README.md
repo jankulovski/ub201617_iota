@@ -117,16 +117,16 @@ Results: <br/>
 
 `Tests on different terrains` 
 
-	`Hill/Terrain 1`
+`Hill/Terrain 1`
 	
 	population_size = 50
 	num_of_generations = 50
 	
-	[Best fitness per generation, all combination of crossovers and selections that we developed](hill/tests/OverallResultsTerrain1.png) <br/>	
+[Best fitness per generation, all combination of crossovers and selections that we developed](hill/tests/OverallResultsTerrain1.png) <br/>	
 	
-	`Hill/Terrain 2`
+`Hill/Terrain 2`
 	
 	population_size = 50
 	num_of_generations = 50
 	
-	[Best fitness per generation, all combination of crossovers and selections that we developed](hill/tests/OverallTerrain2.jpg) <br/>	
+[Best fitness per generation, all combination of crossovers and selections that we developed](hill/tests/OverallTerrain2.jpg) <br/>	
