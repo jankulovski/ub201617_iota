@@ -81,11 +81,11 @@ def regenerate_generation(population, hill):
     Generate generation
     """
     new_population = []
-    # pool = generate_pool(population)
+    pool = generate_pool(population)
     for _ in range(len(population)):
-        #p1, p2 = wheel_selection(population, len(population))
-        p1 = tourn_selection(population,tournament_size)
-        p2 = tourn_selection(population,tournament_size)
+        p1, p2 = wheel_selection(population, pool)
+        # p1 = tourn_selection(population,tournament_size)
+        # p2 = tourn_selection(population,tournament_size)
 
         # child = crossover(p1, p2)
         # child.set_hill(hill)
@@ -249,7 +249,7 @@ if __name__ == '__main__':
             if fit > best:
                 best = fit
             avg_fit += fit
-        all_averageFitness.append(avg_fit/len(population))
+        # all_averageFitness.append(avg_fit/len(population))
         print("Generation: %d, Average Fitness: %d, Best %d" %
               (gen, avg_fit/len(population), best))
 
