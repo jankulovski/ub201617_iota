@@ -98,10 +98,10 @@ class Agent:
         # initial positions
         self.move_counter = max_moves
         self.cur_dir = 'down'
-        self.cur_i = self.dim_i-1
-        self.cur_j = self.dim_j-1
-        self.prev_i = self.cur_i
-        self.prev_j = self.cur_j
+        self.cur_i = 0
+        self.cur_j = 0
+        self.prev_i = 0
+        self.prev_j = 0
         self.start_i = self.cur_i
         self.start_j = self.cur_j
         self.cost_a = 0
@@ -306,7 +306,8 @@ class Agent:
         return 5 + 2 * (end_square - start_square) ** 2
 
     def update_covered_positions(self):
-        if self.covered_positions.shape[0] >= self.cur_i + 1 and self.covered_positions.shape[1] >= self.cur_j + 1:
+        if self.covered_positions.shape > (self.cur_i + 1, self.cur_j + 1):
+#        if self.covered_positions.shape[0] >= self.cur_i + 1 and self.covered_positions.shape[1] >= self.cur_j + 1:
             self.covered_positions[self.cur_i][self.cur_j] += 1
         else:
             raise OutOfBoundException

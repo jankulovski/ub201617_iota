@@ -89,7 +89,7 @@ def regenerate_generation(population, hill):
 
         # child = crossover(p1, p2)
         # child.set_hill(hill)
-        child = crossover(p1, p2)
+        child = crossover2(p1, p2)
 
         new_population.append(mutate(child, _P_SAMPLES, mutation_rate))
 
