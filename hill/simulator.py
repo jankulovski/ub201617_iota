@@ -306,8 +306,8 @@ class Agent:
         return 5 + 2 * (end_square - start_square) ** 2
 
     def update_covered_positions(self):
-        if self.covered_positions.shape > (self.cur_i + 1, self.cur_j + 1):
-#        if self.covered_positions.shape[0] >= self.cur_i + 1 and self.covered_positions.shape[1] >= self.cur_j + 1:
+       # if self.covered_positions.shape > (self.cur_i + 1, self.cur_j + 1):
+        if self.covered_positions.shape[0] >= self.cur_i + 1 and self.covered_positions.shape[1] >= self.cur_j + 1:
             self.covered_positions[self.cur_i][self.cur_j] += 1
         else:
             raise OutOfBoundException
