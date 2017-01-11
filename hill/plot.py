@@ -11,13 +11,13 @@ file = open("output/cmds.txt")
 line = file.readline()
 cmds = json.loads(line)
 
-plot_type = 2
+plot_type = 1
 
 if plot_type==1:
-    # plot best agent in last x generations
-    x = 5
-    for i in range(num_of_generations-x,num_of_generations):
-        prg = output[str(i)]["agents"][0]["program"]
+    # plot best agent in some generations
+    x=[1,int(num_of_generations/3),int(2*num_of_generations/3),num_of_generations-1]
+    for i in range(len(x)):
+        prg = output[str(x[i])]["agents"][0]["program"]
         agent = Agent(hill, prg)
         agent.run(max_iter=max_iter,max_moves=money,graphics=True,delay=0.01,trace = True)
 

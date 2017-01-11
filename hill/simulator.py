@@ -299,11 +299,9 @@ class Agent:
 
     def cost(self, start_square, end_square):
         # TODO: experiment with cost function (fitness function)
-        return 5 + 2 * (end_square - start_square) ** 2
-
-    def cost(self, start_square, end_square):
-        # TODO: experiment with cost function (fitness function)
-        return 5 + 2 * (end_square - start_square) ** 2
+        if(end_square > start_square): c = 5 + 4 * (end_square - start_square) ** 2
+        else: c = 5 + (end_square - start_square) ** 2
+        return c
 
     def update_covered_positions(self):
        # if self.covered_positions.shape > (self.cur_i + 1, self.cur_j + 1):
